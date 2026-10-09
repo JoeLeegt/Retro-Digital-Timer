@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Digital Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles and hiding scrollbar for a clean full-screen experience */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* Digital font applied to specific elements */
+        .font-digital {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* Red Neon Glow Effect */
+        .color-red {
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5), 
+                         0 0 20px rgba(255, 0, 0, 0.4), 
+                         0 0 40px rgba(255, 0, 0, 0.2);
+        }
+
+        /* Green Neon Glow Effect */
+        .color-green {
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 
+                         0 0 20px rgba(0, 255, 0, 0.4), 
+                         0 0 40px rgba(0, 255, 0, 0.2);
+        }
+
+        /* Remove default browser arrows from number inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="text-white antialiased h-screen w-screen selection:bg-gray-700">
+
+    <!-- VIEW 1: SETUP -->
+    <div id="view-setup" class="absolute inset-0 flex items-center justify-center bg-[#050505] transition-opacity duration-500 z-10">
+        <div class="bg-[#111] border border-[#222] p-8 md:p-12 rounded-3xl shadow-2xl max-w-lg w-full mx-4 flex flex-col space-y-8 relative overflow-hidden">
+            
+            <div class="text-center z-10">
+                <h1 class="text-2xl font-light tracking-widest text-gray-300 uppercase">Configuración</h1>
+                <p class="text-sm text-gray-500 mt-2">Selecciona el modo y ajusta el tiempo</p>
+            </div>
+
+            <!-- Mode Selection (Timer vs Countdown) -->
+            <div class="flex bg-[#000] p-1 rounded-xl z-10">
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="mode" value="countdown" class="peer sr-only" checked>
+                    <div class="py-3 rounded-lg text-sm font-medium tracking-wide text-gray-600 peer-checked:bg-[#222] peer-checked:text-white transition-all">
+                        COUNTDOWN
+                    </div>
+                </label>
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="mode" value="timer" class="peer sr-only">
+                    <div class="py-3 rounded-lg text-sm font-medium tracking-wide text-gray-600 peer-checked:bg-[#222] peer-checked:text-white transition-all">
+                        TIMER
+                    </div>
+                </label>
+            </div>
+
+            <!-- Time Inputs -->
+            <div id="time-inputs" class="flex justify-between space-x-2 md:space-x-4 transition-opacity duration-300 z-10">
+                <div class="flex flex-col items-center flex-1">
+                    <input type="number" id="in-h" min="0" max="9999" value="00" class="w-full bg-[#000] text-center text-4xl font-digital text-gray-200 py-4 rounded-xl border border-[#222] focus:outline-none focus:border-gray-500 focus:bg-[#0a0a0a] transition-all">
+                    <span class="text-[10px] md:text-xs text-gray-600 mt-2 uppercase tracking-widest">Horas</span>
+                </div>
+                <div class="text-3xl md:text-4xl font-digital text-gray-600 self-start mt-4">:</div>
+                <div class="flex flex-col items-center flex-1">
+                    <input type="number" id="in-m" min="0" max="9999" value="00" class="w-full bg-[#000] text-center text-4xl font-digital text-gray-200 py-4 rounded-xl border border-[#222] focus:outline-none focus:border-gray-500 focus:bg-[#0a0a0a] transition-all">
+                    <span class="text-[10px] md:text-xs text-gray-600 mt-2 uppercase tracking-widest">Minutos</span>
+                </div>
+                <div class="text-3xl md:text-4xl font-digital text-gray-600 self-start mt-4">:</div>
+                <div class="flex flex-col items-center flex-1">
+                    <input type="number" id="in-s" min="0" max="9999" value="00" class="w-full bg-[#000] text-center text-4xl font-digital text-gray-200 py-4 rounded-xl border border-[#222] focus:outline-none focus:border-gray-500 focus:bg-[#0a0a0a] transition-all">
+                    <span class="text-[10px] md:text-xs text-gray-600 mt-2 uppercase tracking-widest">Segundos</span>
+                </div>
+            </div>
+
+            <!-- Color Selector (Red / Green) -->
+            <div class="flex items-center justify-between bg-[#000] p-4 rounded-xl border border-[#222] z-10">
+                <span class="text-sm font-medium tracking-wide text-gray-400">Color Base</span>
+                <label for="color-toggle" class="flex items-center cursor-pointer">
+                    <span id="color-label" class="mr-3 text-sm font-digital tracking-widest color-red">ROJO</span>
+                    <div class="relative">
+                        <input id="color-toggle" type="checkbox" class="sr-only" />
+                        <div id="toggle-bg" class="block w-14 h-8 rounded-full bg-[#330000] transition-colors duration-300"></div>
+                        <div id="toggle-dot" class="dot absolute left-1 top-1 bg-[#ff0000] w-6 h-6 rounded-full transition transform duration-300 shadow-[0_0_10px_currentColor]"></div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Start Button -->
+            <button id="btn-start" class="w-full py-4 bg-white text-black text-sm font-bold uppercase tracking-[0.2em] rounded-xl hover:bg-gray-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.4)] active:scale-[0.98] transition-all z-10">
+                Iniciar
+            </button>
+        </div>
+    </div>
+
+    <!-- VIEW 2: CLOCK -->
+    <div id="view-clock" class="hidden absolute inset-0 bg-black flex flex-col items-center justify-center cursor-pointer z-20 overflow-hidden">
+        
+        <!-- Text helper to let user know how to exit -->
+        <div class="absolute top-8 opacity-30 text-xs tracking-[0.3em] font-sans uppercase pointer-events-none">
+            Click en la pantalla para detener
+        </div>
+
+        <!-- Digital Clock Container -->
+        <div id="clock-container" class="flex flex-row items-center justify-center space-x-2 sm:space-x-4 md:space-x-6 lg:space-x-8 color-red select-none w-full px-4">
+            
+            <!-- Hours -->
+            <div id="block-h" class="flex flex-col items-center">
+                <span id="el-h" class="text-[4rem] sm:text-[6rem] md:text-[9rem] lg:text-[14rem] font-digital leading-none">00</span>
+                <span class="text-[0.4rem] sm:text-[0.6rem] md:text-xs lg:text-sm font-sans opacity-50 mt-2 tracking-[0.3em] uppercase">Horas</span>
+            </div>
+            
+            <!-- Separator H -->
+            <div id="sep-h" class="flex flex-col items-center pb-6 sm:pb-8 md:pb-12 lg:pb-16 opacity-80">
+                <span class="text-[3rem] sm:text-[5rem] md:text-[7rem] lg:text-[12rem] font-digital leading-none">:</span>
+            </div>
+
+            <!-- Minutes -->
+            <div id="block-m" class="flex flex-col items-center">
+                <span id="el-m" class="text-[4rem] sm:text-[6rem] md:text-[9rem] lg:text-[14rem] font-digital leading-none">00</span>
+                <span class="text-[0.4rem] sm:text-[0.6rem] md:text-xs lg:text-sm font-sans opacity-50 mt-2 tracking-[0.3em] uppercase">Minutos</span>
+            </div>
+
+            <!-- Separator M -->
+            <div id="sep-m" class="flex flex-col items-center pb-6 sm:pb-8 md:pb-12 lg:pb-16 opacity-80">
+                <span class="text-[3rem] sm:text-[5rem] md:text-[7rem] lg:text-[12rem] font-digital leading-none">:</span>
+            </div>
+
+            <!-- Seconds -->
+            <div class="flex flex-col items-center">
+                <span id="el-s" class="text-[4rem] sm:text-[6rem] md:text-[9rem] lg:text-[14rem] font-digital leading-none">00</span>
+                <span class="text-[0.4rem] sm:text-[0.6rem] md:text-xs lg:text-sm font-sans opacity-50 mt-2 tracking-[0.3em] uppercase">Segundos</span>
+            </div>
+
+            <!-- Separator S -->
+            <div class="flex flex-col items-center pb-6 sm:pb-8 md:pb-12 lg:pb-16 opacity-80">
+                <span class="text-[3rem] sm:text-[5rem] md:text-[7rem] lg:text-[12rem] font-digital leading-none">.</span>
+            </div>
+
+            <!-- Milliseconds -->
+            <div class="flex flex-col items-center w-16 sm:w-24 md:w-40 lg:w-64 text-left">
+                <span id="el-ms" class="text-[2rem] sm:text-[4rem] md:text-[6rem] lg:text-[10rem] font-digital leading-none w-full text-center">000</span>
+                <span class="text-[0.4rem] sm:text-[0.6rem] md:text-xs lg:text-sm font-sans opacity-50 mt-2 tracking-[0.3em] uppercase text-center w-full">Ms</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // DOM Elements - Views
+        const viewSetup = document.getElementById('view-setup');
+        const viewClock = document.getElementById('view-clock');
+        const timeInputs = document.getElementById('time-inputs');
+        
+        // DOM Elements - Controls
+        const colorToggle = document.getElementById('color-toggle');
+        const btnStart = document.getElementById('btn-start');
+        const inputs = [document.getElementById('in-h'), document.getElementById('in-m'), document.getElementById('in-s')];
+        
+        // DOM Elements - Clock Display
+        const clockContainer = document.getElementById('clock-container');
+        const elH = document.getElementById('el-h');
+        const elM = document.getElementById('el-m');
+        const elS = document.getElementById('el-s');
+        const elMs = document.getElementById('el-ms');
+
+        // DOM Elements - Dynamic Visibility Containers
+        const blockH = document.getElementById('block-h');
+        const sepH = document.getElementById('sep-h');
+        const blockM = document.getElementById('block-m');
+        const sepM = document.getElementById('sep-m');
+
+        // State variables
+        let animationFrameId;
+        let startTime;
+        let durationMs = 0;
+        let isCountdown = true;
+        let isAlarmRinging = false;
+
+        // Web Audio API State
+        let audioCtx;
+        let alarmInterval;
+
+        // Initialize Web Audio Context
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Play a single retro beep (Square wave)
+        function playBeep() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.01); 
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);     
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // Start the looping alarm pattern (beep-beep, pause, repeat)
+        function startAlarm() {
+            if (isAlarmRinging) return;
+            isAlarmRinging = true;
+            
+            let tick = 0;
+            alarmInterval = setInterval(() => {
+                if (tick % 4 === 0 || tick % 4 === 1) {
+                    playBeep();
+                }
+                tick++;
+            }, 120);
+        }
+
+        function stopAlarm() {
+            isAlarmRinging = false;
+            if (alarmInterval) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+        }
+
+        // Format inputs automatically
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                let val = parseInt(this.value);
+                if (isNaN(val) || val < 0) val = 0;
+                this.value = val.toString().padStart(2, '0');
+            });
+            input.addEventListener('focus', function() {
+                if (this.value === '00') this.value = '';
+            });
+        });
+
+        // Toggle UI modes (Countdown / Timer)
+        document.querySelectorAll('input[name="mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                isCountdown = (e.target.value === 'countdown');
+                if (isCountdown) {
+                    timeInputs.classList.remove('opacity-20', 'pointer-events-none', 'grayscale');
+                } else {
+                    timeInputs.classList.add('opacity-20', 'pointer-events-none', 'grayscale');
+                }
+            });
+        });
+
+        // Toggle Color Logic (Red <-> Green)
+        colorToggle.addEventListener('change', (e) => {
+            const toggleBg = document.getElementById('toggle-bg');
+            const toggleDot = document.getElementById('toggle-dot');
+            const colorLabel = document.getElementById('color-label');
+
+            if (e.target.checked) {
+                // GREEN
+                toggleBg.classList.replace('bg-[#330000]', 'bg-[#003300]');
+                toggleDot.classList.replace('bg-[#ff0000]', 'bg-[#00ff00]');
+                toggleDot.classList.add('translate-x-6');
+                
+                colorLabel.textContent = "VERDE";
+                colorLabel.classList.replace('color-red', 'color-green');
+
+                clockContainer.classList.replace('color-red', 'color-green');
+            } else {
+                // RED
+                toggleBg.classList.replace('bg-[#003300]', 'bg-[#330000]');
+                toggleDot.classList.replace('bg-[#00ff00]', 'bg-[#ff0000]');
+                toggleDot.classList.remove('translate-x-6');
+                
+                colorLabel.textContent = "ROJO";
+                colorLabel.classList.replace('color-green', 'color-red');
+
+                clockContainer.classList.replace('color-green', 'color-red');
+            }
+        });
+
+        // Time formatting helper
+        const pad = (num, size) => num.toString().padStart(size, '0');
+
+        function renderTime(ms) {
+            const hours = Math.floor(ms / 3600000);
+            const minutes = Math.floor((ms % 3600000) / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = Math.floor(ms % 1000);
+
+            elH.textContent = pad(hours, 2);
+            elM.textContent = pad(minutes, 2);
+            elS.textContent = pad(seconds, 2);
+            elMs.textContent = pad(milliseconds, 3);
+        }
+
+        // Main Clock Loop
+        function updateClock(timestamp) {
+            let elapsed = timestamp - startTime;
+            let displayTime = 0;
+
+            if (isCountdown) {
+                displayTime = durationMs - elapsed;
+                
+                if (displayTime <= 0) {
+                    displayTime = 0;
+                    renderTime(displayTime);
+                    startAlarm();
+                    return;
+                }
+            } else {
+                displayTime = elapsed;
+            }
+
+            renderTime(displayTime);
+            animationFrameId = requestAnimationFrame(updateClock);
+        }
+
+        // START BUTTON LOGIC
+        btnStart.addEventListener('click', () => {
+            initAudio();
+
+            const rawH = parseInt(inputs[0].value) || 0;
+            const rawM = parseInt(inputs[1].value) || 0;
+            const rawS = parseInt(inputs[2].value) || 0;
+
+            const totalSeconds = (rawH * 3600) + (rawM * 60) + rawS;
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+
+            inputs[0].value = pad(h, 2);
+            inputs[1].value = pad(m, 2);
+            inputs[2].value = pad(s, 2);
+
+            durationMs = totalSeconds * 1000;
+
+            if (isCountdown) {
+                if (h === 0) {
+                    blockH.classList.remove('flex'); blockH.classList.add('hidden');
+                    sepH.classList.remove('flex'); sepH.classList.add('hidden');
+                } else {
+                    blockH.classList.remove('hidden'); blockH.classList.add('flex');
+                    sepH.classList.remove('hidden'); sepH.classList.add('flex');
+                }
+                
+                if (h === 0 && m === 0) {
+                    blockM.classList.remove('flex'); blockM.classList.add('hidden');
+                    sepM.classList.remove('flex'); sepM.classList.add('hidden');
+                } else {
+                    blockM.classList.remove('hidden'); blockM.classList.add('flex');
+                    sepM.classList.remove('hidden'); sepM.classList.add('flex');
+                }
+            } else {
+                blockH.classList.remove('hidden'); blockH.classList.add('flex');
+                sepH.classList.remove('hidden'); sepH.classList.add('flex');
+                blockM.classList.remove('hidden'); blockM.classList.add('flex');
+                sepM.classList.remove('hidden'); sepM.classList.add('flex');
+            }
+
+            viewSetup.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                viewSetup.classList.add('hidden');
+                viewClock.classList.remove('hidden');
+                
+                startTime = performance.now();
+                animationFrameId = requestAnimationFrame(updateClock);
+            }, 300);
+        });
+
+        // STOP & RETURN LOGIC
+        viewClock.addEventListener('click', () => {
+            cancelAnimationFrame(animationFrameId);
+            stopAlarm();
+            
+            viewClock.classList.add('hidden');
+            viewSetup.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            
+            renderTime(0);
+        });
+
+        // Initial setup run
+        renderTime(0);
+    </script>
+</body>
+</html>
